@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >        
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"> 
+  <!-- Hiding the Safari on iPhone OS UI components --> 
+  <meta name="apple-mobile-web-app-capable" content="yes" > 
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" > 
+  <meta name="apple-touch-fullscreen" content="YES" >
+  <title>Adobe Stock SDK search widget</title>
+  <link href='https://fonts.googleapis.com/css?family=Oxygen:300' rel='stylesheet' type='text/css'>
+  <style type="text/css">
+    html, body {
+      width:100%;
+      height:100%;
+    }
+    body {
+      padding:0;
+      margin:10px;
+      font: 100%/1.1 'Oxygen', sans-serif;;
+      background: #ffffff;
+      overflow-x: hidden;
+    }
+    #main {
+      float: left;
+      width: 57%;
+      padding-right: 3%;
+    }
+    #sidebar {
+      float: right;
+      width: 38%;
+    }
+    #footer {
+        position: relative;
+        bottom: 0;
+        padding-bottom: 5px;
+        clear: both;
+        margin: 10px auto 0 auto;
+        text-align: center;
+        width: 100%;
+        background-color: white;
+        height: 5vh;
+    }
+    .unfloat:after { 
+       content: "."; 
+       visibility: hidden; 
+       display: block; 
+       height: 0; 
+       clear: both;
+    }
+    @media only screen and (max-width: 767px) and (min-width: 0) {
+      #main, #sidebar {
+          float: none;
+          width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="main" class="unfloat">
+    <!-- optional: image used for similarity search -->
+    <img id="hero" src="https://source.unsplash.com/random/400x300" />
+    <div class="text">
+      <h1>Lorem ipsum dolor sit amet consectetuer adipiscing 
+      elit</h1>
+
+      <p>Lorem ipsum dolor sit amet, consectetuer adipiscing 
+      elit. Aenean commodo ligula eget dolor. Aenean massa 
+      <strong>strong</strong>. Cum sociis natoque penatibus 
+      et magnis dis parturient montes, nascetur ridiculus 
+      mus. Donec quam felis, ultricies nec, pellentesque 
+      eu, pretium quis, sem. Nulla consequat massa quis 
+      enim. Donec pede justo, fringilla vel, aliquet nec, 
+      vulputate eget, arcu. In enim justo, rhoncus ut, 
+      imperdiet a, venenatis vitae, justo. Nullam dictum 
+      felis eu pede <a class="external ext" href="#">link</a> 
+      mollis pretium. Integer tincidunt. Cras dapibus. 
+      Vivamus elementum semper nisi. Aenean vulputate 
+      eleifend tellus. Aenean leo ligula, porttitor eu, 
+      consequat vitae, eleifend ac, enim. Aliquam lorem ante, 
+      dapibus in, viverra quis, feugiat a, tellus. Phasellus 
+      viverra nulla ut metus varius laoreet. Quisque rutrum. 
+      Aenean imperdiet. Etiam ultricies nisi vel augue. 
+      Curabitur ullamcorper ultricies nisi.</p>
+    </div>
+  </div>
+  <div id="sidebar" class="unfloat">
+
+  <!-- Begin Stock SearchBar -->
+  <!-- SearchBar container -->
+  <div id="astock-searchbar" class="astock-searchbar unfloat"></div>
+  <!-- SearchBar styles -->
+  <link rel="stylesheet" type="text/css" href="./sdk_searchbar_styles.css">
+  <!-- SearchBar script include -->
+  <script type="text/javascript" src="./sdk_searchbar-1.0.js"></script>
+  <script type="text/javascript">
+    StockSearchBar.init({
+      // container where SearchBar will appear
+      contId: '#astock-searchbar',
+      // additional filters
+      filters: {
+        // first param is CSS selector of element containing keywords
+        // second param is how many keywords to include
+        WORDS: ['title', 3],
+        // for high contrast, use '000000,ffffff'
+        FILTERS_COLORS: '',
+        /* To enable search on similar url:
+         * Enter selector of parent element containing image
+         * leave blank or remove to disable */
+        SIMILAR_URL: '',
+        THUMBNAIL_SIZE: 220,
+        LIMIT: 16,
+      },
+      // Stock api key registered on console.adobe.io
+      // DO NOT USE THIS ONE!
+      apiKey: 'b3f036780e4148b6a3f845bbe4c6de45',
+      // Name you choose for app (whatever you want)
+      appName: 'Stock-Searchbar/1.0',
+      // Your affiliate data--Change these values to receive credit!
+      programID: 264355,
+      advertiserID: 3014001,
+      adID: 22804962,
+    });
+  </script>
+  <!-- End Stock SearchBar -->
+
+  </div>
+  <div id="footer">
+    <h3>Website footer and copyright info here</h3>
+  </div>
+  <!-- for demo purposes only, loads a random image -->
+  <script type="text/javascript">
+    (function() {
+      var requestUrl = './unsplash_data.json';
+      var request = new XMLHttpRequest();
+      request.open('GET', requestUrl);
+      request.responseType = 'json';
+      request.send();
+      request.onload = function() {
+        var data = request.response;
+        var id = Math.floor(Math.random() * data.length);
+        var img = document.getElementById('hero');
+        var title = document.querySelector('.text h1');
+        var desc = data[id]['description'];
+        img.src = data[id]['urls__small'];
+        title.textContent = desc;
+        document.title = desc;
+      };
+    })();
+  </script>  
+</body>
+</html>

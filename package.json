@@ -1,0 +1,20 @@
+{
+  "name": "astock-searchbar",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/sdk_searchbar-1.0.js",
+  "scripts": {
+    "build": "babel src --out-file dist/sdk_searchbar-1.0.min.js --source-maps && cleancss -o dist/sdk_searchbar_styles.min.css src/sdk_searchbar_styles.css"
+  },
+  "author": "cfsmith@adobe.com",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-env": "^1.6.1"
+  },
+  "dependencies": {
+    "babel-plugin-transform-remove-console": "^6.9.0",
+    "babel-polyfill": "^6.26.0",
+    "npm": "^5.7.1"
+  }
+}
