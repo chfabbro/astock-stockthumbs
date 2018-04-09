@@ -54,10 +54,22 @@
           width: 100%;
       }
     }
+    fieldset {
+      border: none;
+    }
   </style>
 </head>
 <body>
   <div id="main" class="unfloat">
+    <form>
+      <fieldset>
+        <legend>Demo options</legend>
+        <select id="demoSelect">
+          <option value="image">Use similar image</option>
+          <option value="keywords">Use keywords in title</option>
+        </select>
+      </fieldset>
+    </form>
     <!-- optional: image used for similarity search -->
     <img id="hero" src="https://source.unsplash.com/random/400x300" />
     <div class="text">
@@ -94,20 +106,20 @@
   <!-- SearchBar script include -->
   <script type="text/javascript" src="./sdk_searchbar-1.0.js"></script>
   <script type="text/javascript">
-    StockSearchBar.init({
+    StockSearchBar.config = {
       // container where SearchBar will appear
       contId: '#astock-searchbar',
       // additional filters
       filters: {
         // first param is CSS selector of element containing keywords
         // second param is how many keywords to include
-        WORDS: ['title', 3],
+        WORDS: [],
         // for high contrast, use '000000,ffffff'
         FILTERS_COLORS: '',
         /* To enable search on similar url:
          * Enter selector of parent element containing image
          * leave blank or remove to disable */
-        SIMILAR_URL: '',
+        SIMILAR_URL: '#hero',
         THUMBNAIL_SIZE: 220,
         LIMIT: 16,
       },
@@ -120,7 +132,8 @@
       programID: 264355,
       advertiserID: 3014001,
       adID: 22804962,
-    });
+    };
+    StockSearchBar.init(StockSearchBar.config);
   </script>
   <!-- End Stock SearchBar -->
 
@@ -128,24 +141,69 @@
   <div id="footer">
     <h3>Sample images provided by <a href="https://unsplash.com/">Unsplash</a></h3>
   </div>
-  <!-- for demo purposes only, loads a random image -->
+  <!-- for demo purposes only, loads a random image and allows changing demo type -->
   <script type="text/javascript">
     (function() {
-      var requestUrl = './unsplash_data.json';
-      var request = new XMLHttpRequest();
-      request.open('GET', requestUrl);
-      request.responseType = 'json';
-      request.send();
-      request.onload = function() {
-        var data = request.response;
-        var id = Math.floor(Math.random() * data.length);
-        var img = document.getElementById('hero');
-        var title = document.querySelector('.text h1');
-        var desc = data[id]['description'];
-        img.src = data[id]['urls__small'];
-        title.textContent = desc;
-        document.title = desc;
+      var demoValues = {
+        image: {
+          name: 'SIMILAR_URL',
+          value: '#hero',
+        },
+        keywords: {
+          name: 'WORDS',
+          value: ['title', 3],
+        },
       };
+      var demoSelect = document.querySelector('#demoSelect');
+      var loc = document.location;
+      // load random unsplash image and title
+      var imageLoader = function() {
+        var requestUrl = './unsplash_data.json';
+        var request = new XMLHttpRequest();
+        request.open('GET', requestUrl);
+        request.responseType = 'json';
+        request.send();
+        request.onload = function() {
+          var data = request.response;
+          var id = Math.floor(Math.random() * data.length);
+          var img = document.getElementById('hero');
+          var title = document.querySelector('.text h1');
+          var desc = data[id]['description'];
+          img.src = data[id]['urls__small'];
+          title.textContent = desc;
+          document.title = desc;
+        };        
+      }();
+      // compares query params from url to selector values
+      var getDemoType = function() {
+        var query = loc.search;
+        var options = demoSelect.options;
+        var type = '';
+        var index = 0;
+        for (var idx = 0; idx < options.length; idx++) {
+          var val = options[idx].value;
+          if (query.indexOf(val) >= 0) {
+            type = val;
+            index = idx;
+          }
+        }
+        if (type !== '') {
+          demoSelect.selectedIndex = index;
+          console.log('demo type is %s', type);
+          // remove default values from config
+          for (var key in demoValues) {
+            StockSearchBar.config.filters[demoValues[key].name] = null;
+          }
+          // now set selected demo values (image or keywords)
+          StockSearchBar.config.filters[demoValues[type].name] = demoValues[type].value;
+        }
+      }();
+      // update url when selection changes
+      function onDemoChange(e) {
+        var url = `${loc.origin}${loc.pathname}?type=${e.target.value}`;
+        window.location.assign(url);
+      }
+      demoSelect.addEventListener('change', onDemoChange, false);
     })();
   </script>  
 </body>
