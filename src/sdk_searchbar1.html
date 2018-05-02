@@ -109,7 +109,7 @@
     StockSearchBar.config = {
       // container where SearchBar will appear
       contId: '#astock-searchbar',
-      // additional filters
+      // search filters
       filters: {
         // first param is CSS selector of element containing keywords
         // second param is how many keywords to include
@@ -130,8 +130,10 @@
       appName: 'Stock-Searchbar/1.0',
       // Your affiliate data--Change these values to receive credit!
       programID: 264355,
-      advertiserID: 3014001,
+      advertiserID: 3033058,
       adID: 22804962,
+      // experimental! create bubble tooltips over images
+      tooltips: true,
     };
     StockSearchBar.init(StockSearchBar.config);
   </script>
@@ -200,7 +202,7 @@
       }();
       // update url when selection changes
       function onDemoChange(e) {
-        var url = `${loc.origin}${loc.pathname}?type=${e.target.value}`;
+        var url = loc.origin + loc.pathname + '?type=' + e.target.value;
         window.location.assign(url);
       }
       demoSelect.addEventListener('change', onDemoChange, false);

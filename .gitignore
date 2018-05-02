@@ -1,2 +1,3 @@
 src/archive/*
 node_modules/
+.eslintrc.json

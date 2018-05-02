@@ -30,7 +30,8 @@
       const filterMap = Object.entries(filters);
       const stkParams = AdobeStock.SEARCH_PARAMS;
       // lookup Stock keyname and map to search filter name
-      filterMap.forEach(([key, value]) => {
+      filterMap.forEach(([key, currentValue]) => {
+        let value = currentValue;
         if (Object.prototype.hasOwnProperty.call(stkParams, key)) {
           if (key === 'SIMILAR_URL') {
             if (value !== '' && value !== undefined) {
@@ -60,24 +61,75 @@
               }
             }
           } else if (value !== '' && value !== undefined) {
+            // validate size
+            if (key === 'THUMBNAIL_SIZE') {
+              const sizes = [110, 160, 220, 240, 500, 1000];
+              const targetSize = value;
+              // check if size is in array of allowed sizes
+              if (sizes.indexOf(targetSize) < 0) {
+                value = sizes.reduce((a, b) => {
+                  const newSize = (Math.abs(a - targetSize) < Math.abs(b - targetSize) ? a : b);
+                  return newSize;
+                });
+                console.warn('Thumbnail size of %s is not valid. Closest size is %s', targetSize, value);
+              }
+            }
             searchFilters[stkParams[key]] = value;
           }
         }
       });
       return searchFilters;
     }
-    // updates thumbnails -- input is json array
-    function updateUiThumbs(files) {
+    // returns container div from selector and adds main class
+    function $getContDiv(el) {
+      const mainClass = 'astock-searchbar';
+      const dataId = 'searchbar';
+      // get reference to jQuery
       const $jq = window.StockSearchBar.$jq;
-      const $sb = $jq(SB.contId);
+      // get reference to target div and data node (might be same)
+      let $tempDiv = $jq(el);
+      const $dataDiv = $tempDiv.find(`[data-id=${dataId}]`);
+      // if data node exists, return it
+      if ($dataDiv.length > 0) {
+        $tempDiv = $dataDiv;
+      // does target node exist
+      } else if ($tempDiv.length > 0) {
+        // does target node contain main class
+        if (!$tempDiv.hasClass(mainClass)) {
+          // create new div to be container
+          const $mainDiv = $jq(document.createElement('div'));
+          // add main class
+          $mainDiv.addClass(mainClass);
+          // add new container under target and return that
+          $tempDiv = $mainDiv;
+          $jq(el).append($tempDiv);
+        }
+        // add data node
+        $tempDiv.attr('data-id', dataId);
+      // neither exists, throw exception
+      } else {
+        throw (new Error('Stock SearchBar error: Container does not exist. Set "contId" to a valid selector.'));
+      }
+      return $tempDiv;
+    }
+    // creates thumbs and inserts -- input is json array
+    function updateUiThumbs(files) {
       const wrapClass = 'astock-searchbar-wrap';
       const bodyClass = 'astock-searchbar-body';
-      const itemClass = 'astock-searchbar-item';
+      let itemClass = 'astock-searchbar-item';
+      const tipClass = 'astock-searchbar-tip';
+      // get reference to jQuery
+      const $jq = window.StockSearchBar.$jq;
+      const $sb = $getContDiv(SB.contId);
       // wrap thumbnails in container to allow scrolling
       const $wrapDiv = $jq(document.createElement('div'));
       $wrapDiv.addClass(wrapClass);
       const $thumbsDiv = $jq(document.createElement('div'));
       $thumbsDiv.addClass(bodyClass);
+      // if body width is less than 150px, apply small item size
+      if ($sb.width() <= 150) {
+        itemClass = `${itemClass} item-small`;
+      }
       // populate with images using html returned in json
       files.forEach((asset) => {
         // get html tag
@@ -94,6 +146,49 @@
         const link = document.createElement('a');
         link.href = url;
         link.target = '_blank';
+        // if captions are enabled
+        if (SB.tooltips) {
+          // create tool tip from image title
+          const tip = document.createElement('div');
+          tip.className = tipClass;
+          // get title text from document-fragment
+          const tipText = thumb.querySelector('img').title;
+          if (tipText !== '' && tipText !== undefined) {
+            tip.textContent = tipText;
+            thumb.querySelector('img').removeAttribute('title');
+            link.appendChild(tip);
+            // create hover behavior for tip
+            const $tip = $jq(tip);
+            const $link = $jq(link);
+            const showTip = (el) => {
+              el.stopPropagation();
+              el.preventDefault();
+              const $img = $jq(el.currentTarget);
+              const $off1 = $img.offset();
+              const $off2 = $sb.offset();
+              const newPos = {
+                top: ($off1.top - $off2.top) + $img.height(),
+                left: ($off1.left - $off2.left) + $img.width(),
+              };
+              $tip.css({
+                top: newPos.top,
+                left: newPos.left,
+              });
+              // console.log('final pos', newPos);
+              $tip.show();
+              // change parent to main div
+              $sb.append($tip);
+            };
+            const hideTip = (el) => {
+              $tip.css($jq(el.currentTarget).offset());
+              $tip.hide();
+              // reset parent to link
+              $link.append($tip);
+            };
+            // $jq(thumb.querySelector('img')).hover(showTip);
+            $jq(link).hover(showTip, hideTip);
+          }
+        }
         // wrap link around image and add to document
         link.appendChild(thumb);
         div.appendChild(link);
@@ -120,7 +215,9 @@
               visibility: 'visible',
               opacity: 1,
             });
-          }, 2000);
+            // call Masonry layout one final time for Firefox!
+            $thumbsDiv.masonry('layout');
+          }, 1000);
         });
     }
     // runs search using sdk
@@ -162,7 +259,7 @@
       init: () => {
         const $jq = window.StockSearchBar.$jq;
         // create search results
-        const $searchBar = $jq(SB.contId);
+        const $searchBar = $getContDiv(SB.contId);
         // create stock header
         const $header = $jq(sbHeader);
         const headerUrl = $header.find('a').attr('href');
@@ -171,12 +268,8 @@
         // extract search options and run search
         doSearch(parseFilters(SB.filters));
       },
-      getFilters: () => {
-        return console.log(SB);
-      },
-      setFilters: (filters) => {
-        return console.log(filters);
-      },
+      getFilters: () => { console.log(SB); },
+      setFilters: (filters) => { console.log(filters); },
     };
   };
   // Get current path of script by triggering a stack trace
@@ -232,8 +325,7 @@
       ).done(() => {
         console.log('jQuery %s and all libraries loaded.', $jq().jquery);
         // dispatch event that searchbar is ready to load
-        const SS = window.StockSearchBar;
-        SS.keywordx = keywordx;
+        SS.keywordx = window.keywordx;
         SS.Masonry = window.Masonry;
         const event = new Event('StockSearchBarReady');
         // Dispatch the event.
@@ -258,7 +350,7 @@
       jQ.type = 'text/javascript';
       jQ.onload = jQ.onreadystatechange;
       jQ.onload = jqLoaded;
-      jQ.src = 'jquery.min.js';
+      jQ.src = `${window.StockSearchBar.PATH}/jquery.min.js`;
       document.body.appendChild(jQ);
     } else {
       jqLoaded();

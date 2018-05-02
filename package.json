@@ -1,6 +1,6 @@
 {
   "name": "astock-searchbar",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "",
   "main": "src/sdk_searchbar-1.0.js",
   "scripts": {
@@ -17,10 +17,5 @@
     "babel-plugin-transform-remove-console": "^6.9.0",
     "babel-polyfill": "^6.26.0",
     "npm": "^5.8.0"
-  },
-  "eslintConfig": {
-    "globals": {
-      "StockSearchBar": true
-    }
   }
 }
