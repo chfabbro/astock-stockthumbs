@@ -26,7 +26,9 @@ For more information about the Stock API and the SDK, see [Getting Started](http
 All files are pre-built in the dist folder, otherwise you can run `npm install` and `npm run build` to build your own copy. The library includes minified versions of jQuery, Masonry, and the Adobe Stock SDK for JavaScript; these are not dependencies of the main script but are required to reside in the same folder. You can supply your own versions if you prefer. The script will load jQuery if it does not detect it already loaded. 
 
 To use on your site:
-1. Copy the `dist` folder to your server and optionally rename to "searchbar". This is not required, but matches the embed code example, below.
+1. Either:
+    - Download and extract [searchbar-1.0.zip](searchbar-1.0.zip) to your web server. It should extract as a folder named "searchbar."
+    - Copy the `dist` folder to your server and optionally rename to "searchbar". This is not required, but matches the embed code example, below.
 2. Include the embed code in your page, preferably at the bottom before the closing `</body>` tag. 
 3. Identify where you want the thumbnails to appear, and note the selector name. Change the `contId` to match the CSS selector name and the gallery will build itself inside that container. By default, the gallery will appear in a DIV with an id of `astock-searchbar`.
 4. To test, your page must be hosted on a web server or in a localhost. Open a web inspector, and if any files are not loading, make sure the paths to the CSS and JS files are correct. The example code expects that if your page resides at the root of your site, then the searchbar files are located in a folder named `searchbar` also located at the root. If it is working properly, you should see some search results based on the title of your page.
