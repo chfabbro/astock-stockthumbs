@@ -217,11 +217,11 @@ The filters object includes a few commands which have special functionality, but
     Note that SearchBar only returns the first page of results (API command is `offset=0`), regardless of the number of results. If you need to support pagination, please open a [new issue](https://github.com/chfabbro/astock-searchbar/issues/new) or [contact us](stockapis@adobe.com).
 
 #### Example filters
-+ To only include illustrations and vectors in your results, set this parameter:
++ To only include illustrations and vectors in your results, set these parameters:
 
 ```
-    SEARCH_PARAMS.FILTERS_CONTENT_TYPE_ILLUSTRATION: 1,
-    SEARCH_PARAMS.FILTERS_CONTENT_TYPE_VECTOR: 1,
+    FILTERS_CONTENT_TYPE_ILLUSTRATION: 1,
+    FILTERS_CONTENT_TYPE_VECTOR: 1,
 ```
 
 ## Styles

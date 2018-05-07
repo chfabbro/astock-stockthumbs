@@ -26,6 +26,7 @@
     function parseFilters(filters) {
       const searchFilters = {};
       const $jq = window.StockSearchBar.$jq;
+      if (!filters) return;
       // iterate over object using method that won't bother eslint!
       const filterMap = Object.entries(filters);
       const stkParams = AdobeStock.SEARCH_PARAMS;
@@ -278,10 +279,18 @@
     const filename = 'fileName';
     const stack = 'stack';
     const stacktrace = 'stacktrace';
+    const sourceUrl = 'sourceURL';
+    const current = 'currentScript';
     let loc = null;
     const matcher = (name, matchedLoc) => {
       loc = matchedLoc;
     };
+
+    // for modern browsers
+    if (document[current] && document[current].src !== '') {
+      loc = document[current].src;
+      return loc.slice(0, loc.lastIndexOf('/') + 1);
+    }
 
     try {
       0(); // throws error
@@ -289,6 +298,8 @@
     } catch (ex) {
       if (filename in ex) { // Firefox
         loc = ex[filename];
+      } else if (sourceUrl in ex) { // New Safari
+        loc = ex[sourceUrl];
       } else if (stacktrace in ex) { // Opera
         ex[stacktrace].replace(/called from line \d+, column \d+ in (.*):/gm, matcher);
       } else if (stack in ex) { // WebKit, Blink, and IE10
