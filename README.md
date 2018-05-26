@@ -27,7 +27,7 @@ All files are pre-built in the dist folder, otherwise you can run `npm install` 
 
 To use on your site:
 1. Either:
-    - Download and extract [searchbar-1.0.zip](searchbar-1.0.zip) to your web server. It should extract as a folder named "searchbar."
+    - Download and extract [searchbar-1.1.zip](searchbar-1.1.zip) to your web server. It should extract as a folder named "searchbar."
     - Copy the `dist` folder to your server and optionally rename to "searchbar". This is not required, but matches the embed code example, below.
 2. Include the embed code in your page, preferably at the bottom before the closing `</body>` tag. 
 3. Identify where you want the thumbnails to appear, and note the selector name. Change the `contId` to match the CSS selector name and the gallery will build itself inside that container. By default, the gallery will appear in a DIV with an id of `astock-searchbar`.
@@ -41,7 +41,7 @@ To use on your site:
   <!-- SearchBar styles -->
   <link rel="stylesheet" type="text/css" href="./searchbar/sdk_searchbar_styles.min.css">
   <!-- SearchBar script include -->
-  <script type="text/javascript" src="./searchbar/sdk_searchbar-1.0.min.js"></script>
+  <script type="text/javascript" src="./searchbar/sdk_searchbar.min.js"></script>
   <script type="text/javascript">
     StockSearchBar.init({
       // container where SearchBar will appear
@@ -77,7 +77,7 @@ To use on your site:
 ```
 
 ## Dependent libraries
-At a minimum, you must include the JS library `sdk_searchbar-1.0.min.js`. This script is minified using a source map which is included in the dist folder, so if you use a modern brower and open your web console, you should be able to inspect the source without needing to "prettify" it.
+At a minimum, you must include the JS library `sdk_searchbar.min.js`. This script is minified using a source map which is included in the dist folder, so if you use a modern brower and open your web console, you should be able to inspect the source without needing to "prettify" it.
 
 You will also want to include the CSS file `sdk_searchbar_styles.min.css`, although most of the search bar will create itself properly without it (and in some cases, it will create required classes). You can easily override the default CSS classes as needed.
 
