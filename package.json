@@ -4,7 +4,7 @@
   "description": "Reference integration of Adobe Stock search results",
   "main": "src/sdk_searchbar.js",
   "scripts": {
-    "build": "babel src --out-file dist/sdk_searchbar-1.1.min.js --source-maps && git archive --format=zip --prefix=searchbar/ HEAD:dist/ -o searchbar-1.1.zip"
+    "build": "babel src --out-file dist/sdk_searchbar.min.js --source-maps && babel src --out-dir dist --copy-files --ignore sdk_searchbar1-src.html,sdk_searchbar.js && git archive --format=zip --prefix=searchbar/ HEAD:dist/ -o searchbar-1.1.zip"
   },
   "author": "cfsmith@adobe.com",
   "license": "Apache-2.0",
@@ -14,8 +14,7 @@
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.1",
-    "clean-css-cli": "^4.1.11"
+    "babel-preset-env": "^1.6.1"
   },
   "dependencies": {
     "babel-plugin-transform-remove-console": "^6.9.0",
