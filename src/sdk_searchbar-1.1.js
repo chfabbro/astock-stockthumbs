@@ -18,11 +18,13 @@
     const AdobeStock = window.AdobeStock;
     const SB = searchBarConfig;
     const includePath = window.StockSearchBar.PATH;
-    const sbHeader = `<div class="astock-searchbar-header"><a href="https://stock.adobe.com" target="_blank"><img src="${includePath}/adobe_stock_logo-400.png"></a></div>`;
     function getTrackingUrl(url) {
       // clk.tradedoubler.com/click?p(ProgramID)&a(AdvertiserID)&g(AdID)url(TARGET_URL)
       return `//clk.tradedoubler.com/click?p(${SB.programID})a(${SB.advertiserID})g(${SB.adID})url(${encodeURIComponent(url)})`;
     }
+    const stockHomeUrl = getTrackingUrl('https://stock.adobe.com');
+    const fmfUrl = getTrackingUrl('https://stock.adobe.com/plans');
+    const sbHeader = `<div class="astock-searchbar-header"><a href="${stockHomeUrl}" target="_blank"><img src="${includePath}/adobe_stock_logo-400.png"></a><p>First month free with <a href="${fmfUrl}" class="astock-searchbar-link" target="_blank">Adobe Stock annual plans</a>.</p></div>`;
     function parseFilters(filters) {
       const searchFilters = {};
       const $jq = window.StockSearchBar.$jq;
@@ -264,7 +266,6 @@
         // create stock header
         const $header = $jq(sbHeader);
         const headerUrl = $header.find('a').attr('href');
-        $header.find('a').attr('href', getTrackingUrl(headerUrl));
         $searchBar.append($header);
         // extract search options and run search
         doSearch(parseFilters(SB.filters));

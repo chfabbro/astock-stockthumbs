@@ -1,13 +1,17 @@
 {
   "name": "astock-searchbar",
-  "version": "1.0.1",
-  "description": "",
-  "main": "src/sdk_searchbar-1.0.js",
+  "version": "1.1.0",
+  "description": "Reference integration of Adobe Stock search results",
+  "main": "src/sdk_searchbar-1.1.js",
   "scripts": {
-    "build": "babel src --out-file dist/sdk_searchbar-1.0.min.js --source-maps && cleancss -o dist/sdk_searchbar_styles.min.css src/sdk_searchbar_styles.css && git archive --format=zip --prefix=searchbar/ HEAD:dist/ -o searchbar-1.0.zip"
+    "build": "babel src --out-file dist/sdk_searchbar-1.1.min.js --source-maps && git archive --format=zip --prefix=searchbar/ HEAD:dist/ -o searchbar-1.1.zip"
   },
   "author": "cfsmith@adobe.com",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chfabbro/astock-searchbar.git"
+  },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-preset-env": "^1.6.1",
