@@ -14,8 +14,19 @@
 
 When dropped into your page, this sample library creates a gallery of Stock search thumbnails. While you can add different search parameters, it is designed to search on a similar image URL (such as the main image on your page), or on keywords. Keyword extraction is provided by the [Keyword Extractor](https://github.com/michaeldelorenzo/keyword-extractor) package by Michael DeLorenzo.
 
+__New as of July 26, 2018__ In the 1.2 release, there is now support for video thumbnails. See the video thumbnails [demo located here](https://cfsdemos.com/stock/demos/searchbar/sdk_searchbar-video.html). Adobe Stock does not support similarity search for videos yet, so only keyword search is part of this demo. There are two new configuration commands added:
+
+```
+    videoSupport: true,
+    ctaLink: 'video',
+```
+
+The command `videoSupport` enables video thumbnails. This detects if an asset has a video preview, and adds this preview as a dynamic video thumbnail that plays when hovered over it. It also adds a video icon to the image.
+
+The command `ctaLink` controls what call-to-action (CTA) link appears above the thumbnails. The default language is "First month free with Adobe Stock annual plans." If `ctaLink` is set to `video`, the link text will read "Save money on Adobe Stock videos." (Default value is `fmf` for the "first-month free" promotion.)
+
 ## Responsive demo
-http://cfsdemos.com/stock/demos/searchbar/sdk_searchbar1.html
+https://cfsdemos.com/stock/demos/searchbar/sdk_searchbar1.html
 
 ## Register
 Before you use the sample, you will need to register for an [Adobe Stock API key](https://console.adobe.io/integrations). Also, if you want to get paid for referral traffic, sign up to become an [Adobe affiliate](https://www.adobe.com/affiliates.html). Otherwise, you will not receive credit for traffic you generate.
@@ -103,9 +114,9 @@ The configuration object has a few required properties:
 
     The sample code includes an example of a container:
 
-    ```html
+```html
     <div id="astock-searchbar" class="astock-searchbar unfloat"></div>
-    ```
+```
 
     You can choose to place this DIV wherever you want the thumbnails to appear, or you can leave it out and choose a different container. If you use a different container and do not include the main `astock-searchbar` class, then a DIV element will be created with this class name.
 

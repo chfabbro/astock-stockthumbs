@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" >        
+  <meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0"> 
+  <!-- Hiding the Safari on iPhone OS UI components --> 
+  <meta name="apple-mobile-web-app-capable" content="yes" > 
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" > 
+  <meta name="apple-touch-fullscreen" content="YES" >
+  <title>Adobe Stock SDK search widget</title>
+  <link href='https://fonts.googleapis.com/css?family=Oxygen:300' rel='stylesheet' type='text/css'>
+  <style type="text/css">
+    html, body {
+      width:100%;
+      height:100%;
+    }
+    body {
+      padding:0;
+      margin:10px;
+      font: 100%/1.1 'Oxygen', sans-serif;;
+      background: #ffffff;
+      overflow-x: hidden;
+    }
+    #main {
+      float: left;
+      width: 52%;
+      padding-right: 3%;
+    }
+    #sidebar {
+      float: right;
+      width: 38%;
+      margin-right: 5%;
+    }
+    #footer {
+        position: relative;
+        bottom: 0;
+        padding-bottom: 5px;
+        clear: both;
+        margin: 10px auto 0 auto;
+        text-align: center;
+        width: 100%;
+        background-color: white;
+        height: 5vh;
+    }
+    .unfloat:after { 
+       content: "."; 
+       visibility: hidden; 
+       display: block; 
+       height: 0; 
+       clear: both;
+    }
+    @media only screen and (max-width: 767px) and (min-width: 0) {
+      #main, #sidebar {
+          float: none;
+          width: 100%;
+      }
+    }
+    fieldset {
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="main" class="unfloat">
+    <!-- optional: image used for similarity search -->
+    <img id="hero" src="https://source.unsplash.com/random/400x300" />
+    <div class="text">
+      <h1>Clever title for image</h1>
+
+      <p>Lord Henry laughed. "The reason we all like to think so well of others is that we are all afraid for ourselves. The basis of optimism is sheer terror. We think that we are generous because we credit our neighbour with the possession of those virtues that are likely to be a benefit to us. We praise the banker that we may <a class="external ext" href="#">overdraw our account</a>, and find good qualities in the highwayman in the hope that he may spare our pockets. I mean everything that I have said. I have the greatest contempt for optimism. As for a <strong>spoiled</strong> life, no life is spoiled but one whose growth is arrested. If you want to mar a nature, you have merely to reform it. As for marriage, of course that would be silly, but there are other and more interesting bonds between men and women. I will certainly encourage them. They have the charm of being fashionable. But here is Dorian himself. He will tell you more than I can."</p>
+    </div>
+  </div>
+  <div id="sidebar" class="unfloat">
+
+  <!-- Begin Stock SearchBar -->
+  <!-- SearchBar container -->
+  <div id="astock-searchbar" class="astock-searchbar unfloat"></div>
+  <!-- SearchBar styles -->
+  <link rel="stylesheet" type="text/css" href="./sdk_searchbar_styles.css">
+  <!-- SearchBar script include -->
+  <script type="text/javascript" src="./sdk_searchbar.min.js"></script>
+  <script type="text/javascript">
+    StockSearchBar.config = {
+      // container where SearchBar will appear
+      contId: '#astock-searchbar',
+      // search filters
+      filters: {
+        // first param is CSS selector of element containing keywords
+        // second param is how many keywords to include
+        WORDS: ['title', 2],
+        // optional: restricts search to ONLY video content
+        FILTERS_CONTENT_TYPE_VIDEO: 1,
+        THUMBNAIL_SIZE: 220,
+        LIMIT: 16,
+      },
+      // Stock api key registered on console.adobe.io
+      // DO NOT USE THIS ONE!
+      apiKey: 'b3f036780e4148b6a3f845bbe4c6de45',
+      // Name you choose for app (whatever you want)
+      appName: 'Stock-Searchbar/1.2',
+      // Your affiliate data--Change these values to receive credit!
+      programID: 264355,
+      advertiserID: 3033058,
+      adID: 22804962,
+      // create bubble tooltips over thumbnails
+      tooltips: true,
+      // enables video preview thumbnails
+      videoSupport: true,
+      // sets CTA link type in banner
+      // 'fmf': First-month free (images only) -> default
+      // 'video': Promotes credit packs (for video)
+      ctaLink: 'video',
+    };
+    StockSearchBar.init(StockSearchBar.config);
+  </script>
+  <!-- End Stock SearchBar -->
+
+  </div>
+  <div id="footer">
+    <h3>Sample images provided by <a href="https://unsplash.com/">Unsplash</a></h3>
+  </div>
+  <!-- for demo purposes only, loads a random video -->
+  <script type="text/javascript">
+    (function() {
+      var loc = document.location;
+      // load random unsplash image and title
+      var imageLoader = function() {
+        var requestUrl = './unsplash_data.json';
+        var request = new XMLHttpRequest();
+        request.open('GET', requestUrl);
+        request.responseType = 'json';
+        request.send();
+        request.onload = function() {
+          var data = request.response;
+          var id = Math.floor(Math.random() * data.length);
+          var img = document.getElementById('hero');
+          var title = document.querySelector('.text h1');
+          var desc = data[id]['description'];
+          img.src = data[id]['urls__small'];
+          title.textContent = desc;
+          document.title = desc;
+        };        
+      }();
+    })();
+  </script>  
+</body>
+</html>

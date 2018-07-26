@@ -1,10 +1,10 @@
 {
   "name": "astock-searchbar",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Reference integration of Adobe Stock search results",
   "main": "src/sdk_searchbar.js",
   "scripts": {
-    "build": "babel src --out-file dist/sdk_searchbar.min.js --source-maps && babel src --out-dir dist --copy-files --ignore sdk_searchbar1-src.html,sdk_searchbar.js && git archive --format=zip --prefix=searchbar/ HEAD:dist/ -o searchbar-1.1.zip"
+    "build": "babel src/sdk_searchbar.js --out-file dist/sdk_searchbar.min.js --source-maps && babel src --out-dir dist --copy-files --ignore sdk_searchbar1-src.html,sdk_searchbar-videosrc.html,sdk_searchbar.js,archive && git archive --format=zip --prefix=searchbar/ HEAD:dist/ -o searchbar-1.2.zip"
   },
   "author": "cfsmith@adobe.com",
   "license": "Apache-2.0",

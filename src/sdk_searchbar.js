@@ -23,8 +23,16 @@
       return `//clk.tradedoubler.com/click?p(${SB.programID})a(${SB.advertiserID})g(${SB.adID})url(${encodeURIComponent(url)})`;
     }
     const stockHomeUrl = getTrackingUrl('https://stock.adobe.com');
-    const fmfUrl = getTrackingUrl('https://stock.adobe.com/plans');
-    const sbHeader = `<div class="astock-searchbar-header"><a href="${stockHomeUrl}" target="_blank"><img src="${includePath}/adobe_stock_logo-400.png"></a><p>First month free with <a href="${fmfUrl}" class="astock-searchbar-link" target="_blank">Adobe Stock annual plans</a>.</p></div>`;
+    // returns cta link per ctaLink config variable
+    const getCtaText = () => {
+      const cta = {
+        fmf: `<p>First month free with <a href="${getTrackingUrl('https://stock.adobe.com/plans')}" class="astock-searchbar-link" target="_blank">Adobe Stock annual plans</a>.</p>`,
+        video: `<p>Save money on Adobe Stock videos <a href="${getTrackingUrl('https://stock.adobe.com/video')}" class="astock-searchbar-link" target="_blank">with a credit pack</a>.</p>`,
+      };
+      if (SB.ctaLink === 'video') return cta.video;
+      return cta.fmf;
+    };
+    const sbHeader = `<div class="astock-searchbar-header"><a href="${stockHomeUrl}" target="_blank"><img src="${includePath}/adobe_stock_logo-400.png"></a>${getCtaText()}</div>`;
     function parseFilters(filters) {
       const searchFilters = {};
       const $jq = window.StockSearchBar.$jq;
@@ -116,11 +124,17 @@
       return $tempDiv;
     }
     // creates thumbs and inserts -- input is json array
+    /*
+      <div class="astock-searchbar-item" style="position: absolute; left: 0px; top: 0px;"><a href="//clk.tradedoubler.com/click?p(264355)a(3033058)g(22804962)url(https%3A%2F%2Fstock.adobe.com%2F213282832%3Fas_channel%3Daffiliate%26as_source%3Dapi%26as_content%3Db3f036780e4148b6a3f845bbe4c6de45)" target="_blank"><video preload="none" poster="https://as1.ftcdn.net/jpg/02/13/28/28/220_F_213282832_VAZvWySW4wa5YpZjBqZEEU6yUYxM7PkT.jpg" muted="muted" onmouseover="this.play()" onmouseout="this.pause()"><source src="https://v.ftcdn.net/02/13/28/28/240_F_213282832_VAZvWySW4wa5YpZjBqZEEU6yUYxM7PkT_ST.mp4" type="video/mp4"></video></a></div>
+    */
     function updateUiThumbs(files) {
       const wrapClass = 'astock-searchbar-wrap';
       const bodyClass = 'astock-searchbar-body';
       let itemClass = 'astock-searchbar-item';
       const tipClass = 'astock-searchbar-tip';
+      const iconClass = 'astock-searchbar-item-icon';
+      // get reference to result columns object
+      const columns = AdobeStock.RESULT_COLUMNS;
       // get reference to jQuery
       const $jq = window.StockSearchBar.$jq;
       const $sb = $getContDiv(SB.contId);
@@ -133,15 +147,12 @@
       if ($sb.width() <= 150) {
         itemClass = `${itemClass} item-small`;
       }
+      // svg video icon
+      const videoSvg = '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 19 12" style="enable-background:new 0 0 19 12; width:19px; height:10px; fill:white;" xml:space="preserve"><g><path d="M17.8,0.8L13,3V0.8C13,0.4,12.6,0,12.2,0H0.8C0.4,0,0,0.4,0,0.8v10.4C0,11.6,0.4,12,0.8,12h11.4c0.4,0,0.8-0.4,0.8-0.8V 9l4.8,2.2c0.5,0.4,1.2,0,1.2-0.7v-9C19,0.9,18.3,0.5,17.8,0.8z"></path></g></svg>';
       // populate with images using html returned in json
       files.forEach((asset) => {
-        // get html tag
-        const tag = asset[AdobeStock.RESULT_COLUMNS.THUMBNAIL_HTML_TAG];
         // get url to details page on Stock and wrap inside affiliate tracking url
-        const url = getTrackingUrl(asset[AdobeStock.RESULT_COLUMNS.DETAILS_URL]);
-        // convert html string into dom element
-        const range = document.createRange();
-        const thumb = range.createContextualFragment(tag);
+        const url = getTrackingUrl(asset[columns.DETAILS_URL]);
         // create div wrapper
         const div = document.createElement('div');
         div.className = itemClass;
@@ -149,6 +160,44 @@
         const link = document.createElement('a');
         link.href = url;
         link.target = '_blank';
+        let thumb;
+        // construct a different thumb element depending on asset type
+        if (SB.videoSupport && asset[columns.MEDIA_TYPE_ID] === 4) {
+          // create video and source tag
+          const video = document.createElement('video');
+          const source = document.createElement('source');
+          Object.assign(video, {
+            preload: 'none',
+            poster: asset[columns.THUMBNAIL_URL],
+            loop: 'loop',
+          });
+          // for some reason, cannot assign these properties
+          video.setAttribute('muted', 'muted');
+          video.setAttribute('onmouseover', 'this.play()');
+          video.setAttribute('onmouseout', 'this.pause()');
+          Object.assign(source, {
+            src: asset[columns.VIDEO_SMALL_PREVIEW_URL],
+            type: asset[columns.VIDEO_SMALL_PREVIEW_CONTENT_TYPE],
+          });
+          // add video source and set thumb as video
+          video.appendChild(source);
+          // add play icon
+          const iconDiv = document.createElement('div');
+          iconDiv.className = iconClass;
+          const svg = document.createRange().createContextualFragment(videoSvg);
+          iconDiv.appendChild(svg);
+          div.appendChild(iconDiv);
+          link.appendChild(video);
+          // get html tag
+          const tag = asset[columns.THUMBNAIL_HTML_TAG];
+          // convert html string into dom element
+          thumb = document.createRange().createContextualFragment(tag);
+        } else {
+          // get html tag
+          const tag = asset[columns.THUMBNAIL_HTML_TAG];
+          // convert html string into dom element
+          thumb = document.createRange().createContextualFragment(tag);
+        }
         // if captions are enabled
         if (SB.tooltips) {
           // create tool tip from image title
@@ -192,9 +241,9 @@
             $jq(link).hover(showTip, hideTip);
           }
         }
-        // wrap link around image and add to document
+        // wrap link around image/video and add to document
         link.appendChild(thumb);
-        div.appendChild(link);
+        div.insertBefore(link, div.lastChild);
         $thumbsDiv.append(div);
       });
       $wrapDiv.append($thumbsDiv);
@@ -237,11 +286,20 @@
         search_parameters: searchParams,
       };
       // result fields to get back
-      const resultColumns = [
+      const imageColumns = [
         AdobeStock.RESULT_COLUMNS.THUMBNAIL_HTML_TAG,
         AdobeStock.RESULT_COLUMNS.DETAILS_URL,
         AdobeStock.RESULT_COLUMNS.NB_RESULTS,
       ];
+      const videoColumns = [
+        AdobeStock.RESULT_COLUMNS.TITLE,
+        AdobeStock.RESULT_COLUMNS.THUMBNAIL_URL,
+        AdobeStock.RESULT_COLUMNS.MEDIA_TYPE_ID,
+        AdobeStock.RESULT_COLUMNS.VIDEO_SMALL_PREVIEW_URL,
+        AdobeStock.RESULT_COLUMNS.VIDEO_SMALL_PREVIEW_CONTENT_TYPE,
+      ];
+      // if video support is enabled, include extra result columns
+      const resultColumns = (SB.videoSupport) ? imageColumns.concat(videoColumns) : imageColumns;
       console.log('Search query: %o', searchParams);
       // create sdk instance
       const stock = new AdobeStock(SB.apiKey, SB.appName, AdobeStock.ENVIRONMENT.PROD);
@@ -265,12 +323,11 @@
         const $searchBar = $getContDiv(SB.contId);
         // create stock header
         const $header = $jq(sbHeader);
-        const headerUrl = $header.find('a').attr('href');
         $searchBar.append($header);
         // extract search options and run search
         doSearch(parseFilters(SB.filters));
       },
-      getFilters: () => { console.log(SB); },
+      getFilters: () => { console.log(SB.filters); },
       setFilters: (filters) => { console.log(filters); },
     };
   };
