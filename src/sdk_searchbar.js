@@ -22,12 +22,17 @@
       // clk.tradedoubler.com/click?p(ProgramID)&a(AdvertiserID)&g(AdID)url(TARGET_URL)
       return `//clk.tradedoubler.com/click?p(${SB.programID})a(${SB.advertiserID})g(${SB.adID})url(${encodeURIComponent(url)})`;
     }
-    const stockHomeUrl = getTrackingUrl('https://stock.adobe.com');
+    function getHost() {
+      return document.location.hostname;
+    }
+    const stockHomeUrl = getTrackingUrl(`https://stock.adobe.com?as_campaign=${encodeURIComponent(getHost())}`);
     // returns cta link per ctaLink config variable
     const getCtaText = () => {
+      const fmfUrl = getTrackingUrl(`https://stock.adobe.com/promo/firstmonthfree?as_campaign=${getHost()}`);
+      const videoUrl = getTrackingUrl(`https://stock.adobe.com/video?as_campaign=${getHost()}`);
       const cta = {
-        fmf: `<p>First month free with <a href="${getTrackingUrl('https://stock.adobe.com/plans')}" class="astock-searchbar-link" target="_blank">Adobe Stock annual plans</a>.</p>`,
-        video: `<p>Save money on Adobe Stock videos <a href="${getTrackingUrl('https://stock.adobe.com/video')}" class="astock-searchbar-link" target="_blank">with a credit pack</a>.</p>`,
+        fmf: `<p>First month free with <a href="${fmfUrl}" class="astock-searchbar-link" target="_blank">Adobe Stock annual plans</a>.</p>`,
+        video: `<p>Save money on Adobe Stock videos <a href="${videoUrl}" class="astock-searchbar-link" target="_blank">with a credit pack</a>.</p>`,
       };
       if (SB.ctaLink === 'video') return cta.video;
       return cta.fmf;
