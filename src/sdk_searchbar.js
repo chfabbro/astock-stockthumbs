@@ -419,7 +419,7 @@
 
   domReadyHandler(() => {
     // check for jQuery and load conditionally if version 1.9 or higher
-    if (typeof window.jQuery === 'undefined' && !window.jQuery && (parseFloat(jQuery().jquery) >= 1.9)) {
+    if ((typeof window.jQuery === 'undefined' && !window.jQuery) || (parseFloat(window.jQuery().jquery) < 1.9)) {
       const jQ = document.createElement('script');
       jQ.type = 'text/javascript';
       jQ.onload = jQ.onreadystatechange;
