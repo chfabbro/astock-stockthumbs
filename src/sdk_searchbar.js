@@ -15,7 +15,7 @@
     },
   };
   searchBarMain = () => {
-    const AdobeStock = window.AdobeStock;
+    const { AdobeStock } = window;
     const SB = searchBarConfig;
     const includePath = window.StockSearchBar.PATH;
     function getTrackingUrl(url) {
@@ -40,8 +40,8 @@
     const sbHeader = `<div class="astock-searchbar-header"><a href="${stockHomeUrl}" target="_blank"><img src="${includePath}/adobe_stock_logo-400.png"></a>${getCtaText()}</div>`;
     function parseFilters(filters) {
       const searchFilters = {};
-      const $jq = window.StockSearchBar.$jq;
-      if (!filters) return;
+      const { $jq } = window.StockSearchBar;
+      if (!filters) return searchFilters;
       // iterate over object using method that won't bother eslint!
       const filterMap = Object.entries(filters);
       const stkParams = AdobeStock.SEARCH_PARAMS;
@@ -60,7 +60,9 @@
           } else if (key === 'WORDS') {
             // value should be array ['DOM element', keyword count]
             if (value && value[0]) {
-              const phrase = $jq(value[0]).text();
+              const $el = $jq(value[0]);
+              const isInput = $el.is('input');
+              const phrase = (isInput) ? $el.val() : $el.text();
               // if element has text get keywords
               if (phrase) {
                 const keywords = window.StockSearchBar.keywordx.extract(phrase, {
@@ -101,7 +103,7 @@
       const mainClass = 'astock-searchbar';
       const dataId = 'searchbar';
       // get reference to jQuery
-      const $jq = window.StockSearchBar.$jq;
+      const { $jq } = window.StockSearchBar;
       // get reference to target div and data node (might be same)
       let $tempDiv = $jq(el);
       const $dataDiv = $tempDiv.find(`[data-id=${dataId}]`);
@@ -141,7 +143,7 @@
       // get reference to result columns object
       const columns = AdobeStock.RESULT_COLUMNS;
       // get reference to jQuery
-      const $jq = window.StockSearchBar.$jq;
+      const { $jq } = window.StockSearchBar;
       const $sb = $getContDiv(SB.contId);
       // wrap thumbnails in container to allow scrolling
       const $wrapDiv = $jq(document.createElement('div'));
@@ -323,7 +325,7 @@
     }
     return {
       init: () => {
-        const $jq = window.StockSearchBar.$jq;
+        const { $jq } = window.StockSearchBar;
         // create search results
         const $searchBar = $getContDiv(SB.contId);
         // create stock header
@@ -379,7 +381,7 @@
     jQuery(document).ready((jQuery) => {
       const SS = window.StockSearchBar;
       SS.$jq = jQuery.noConflict();
-      const $jq = SS.$jq;
+      const { $jq } = SS;
       const reqs = {
         keywordx: 'keywordx.min.js',
         imagesloaded: 'imagesloaded.pkgd.min.js',
