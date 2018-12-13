@@ -52,7 +52,8 @@
           if (key === 'SIMILAR_URL') {
             if (value !== '' && value !== undefined) {
               const firstImg = $jq(`${value} img`)[0] || $jq(`${value}`)[0];
-              const url = $jq(firstImg).attr('src');
+              const getSrcSet = srcset => ((srcset) ? srcset.split(', ')[0].split(' ')[0] : undefined);
+              const url = $jq(firstImg).attr('src') || getSrcSet($jq(firstImg).attr('srcset'));
               if (url !== '' && url !== undefined) {
                 searchFilters[stkParams[key]] = url;
               }
