@@ -1,46 +1,82 @@
 (() => {
-  let searchBarConfig = {};
-  let searchBarMain = null;
+  let stockThumbsConfig = {};
+  let stockThumbsMain = null;
+  let jqLoaded;
   // expose global object
-  window.StockSearchBar = {
+  window.StockThumbs = {
     init: (config) => {
-      searchBarConfig = config;
-      window.addEventListener('StockSearchBarReady', () => {
-        console.log('SearchBar ready');
-        const sbm = searchBarMain();
-        window.StockSearchBar.getFilters = sbm.getFilters;
-        window.StockSearchBar.setFilters = sbm.setFilters;
-        sbm.init();
+      stockThumbsConfig = config;
+      // rules for app to use alternate options
+      stockThumbsConfig.custom = config.custom;
+      const loadScripts = jqLoaded(stockThumbsConfig);
+      window.addEventListener('jQueryLoaded', (e) => {
+        // prevents a double event
+        e.target.removeEventListener('jQueryLoaded', loadScripts, false);
+      }, false);
+      window.addEventListener('StockThumbsReady', () => {
+        console.log('StockThumbs ready');
+        const stm = stockThumbsMain();
+        const { StockThumbs } = window;
+        // merge custom config rules with global config
+        if (StockThumbs.config && StockThumbs.config.custom) {
+          stockThumbsConfig.custom = Object.assign(config.custom, StockThumbs.config.custom);
+          // initialize custom code with config and main object
+          if (StockThumbs.config.custom.init) {
+            StockThumbs.config.custom.init(stockThumbsConfig, stm);
+          }
+        }
+        // expose to global object
+        StockThumbs.getFilters = stm.getFilters;
+        StockThumbs.setFilters = stm.setFilters;
+        StockThumbs.config = stockThumbsConfig;
+        // now call main init method returned below
+        stm.init();
       }, false);
     },
   };
-  searchBarMain = () => {
+  stockThumbsMain = () => {
     const { AdobeStock } = window;
-    const SB = searchBarConfig;
-    const includePath = window.StockSearchBar.PATH;
-    function getTrackingUrl(url) {
+    const stc = stockThumbsConfig;
+    // utility functions for getting tracking urls and paths
+    const utils = {
+      includePath: window.StockThumbs.PATH,
       // clk.tradedoubler.com/click?p(ProgramID)&a(AdvertiserID)&g(AdID)url(TARGET_URL)
-      return `//clk.tradedoubler.com/click?p(${SB.programID})a(${SB.advertiserID})g(${SB.adID})url(${encodeURIComponent(url)})`;
-    }
-    function getHost() {
-      return document.location.hostname;
-    }
-    const stockHomeUrl = getTrackingUrl(`https://stock.adobe.com?as_campaign=${encodeURIComponent(getHost())}`);
+      getTrackingUrl: (url, cfg) => `//clk.tradedoubler.com/click?p(${cfg.programID})a(${cfg.advertiserID})g(${cfg.adID})url(${encodeURIComponent(url)})`,
+      getHost: () => {
+        let host = document.location.hostname;
+        // check if a custom hostname is set
+        if (stc.custom && stc.custom.hostname) {
+          host = stc.custom.hostname;
+        } else {
+          // if <base href> is set, return that instead of doc location
+          const base = document.querySelector('base') && document.querySelector('base').href;
+          // create temporary link and extract hostname
+          const tmpLink = document.createElement('a');
+          tmpLink.href = base;
+          host = tmpLink.hostname;
+        }
+        return host;
+      },
+      get stockHomeUrl() {
+        return this.getTrackingUrl(`https://stock.adobe.com?as_campaign=${encodeURIComponent(this.getHost())}`, stc);
+      },
+    };
     // returns cta link per ctaLink config variable
     const getCtaText = () => {
-      const fmfUrl = getTrackingUrl(`https://stock.adobe.com/promo/firstmonthfree?as_campaign=${getHost()}`);
-      const videoUrl = getTrackingUrl(`https://stock.adobe.com/video?as_campaign=${getHost()}`);
+      const fmfUrl = utils.getTrackingUrl(`https://stock.adobe.com/promo/firstmonthfree?as_campaign=${utils.getHost()}`, stc);
+      const videoUrl = utils.getTrackingUrl(`https://stock.adobe.com/video?as_campaign=${utils.getHost()}`, stc);
       const cta = {
         fmf: `<p>First month free with <a href="${fmfUrl}" class="astock-searchbar-link" target="_blank">Adobe Stock annual plans</a>.</p>`,
         video: `<p>Save money on Adobe Stock videos <a href="${videoUrl}" class="astock-searchbar-link" target="_blank">with a credit pack</a>.</p>`,
       };
-      if (SB.ctaLink === 'video') return cta.video;
+      if (stc.ctaLink === 'video') return cta.video;
       return cta.fmf;
     };
-    const sbHeader = `<div class="astock-searchbar-header"><a href="${stockHomeUrl}" target="_blank"><img src="${includePath}/adobe_stock_logo-400.png"></a>${getCtaText()}</div>`;
+    const sbHeader = `<div class="astock-searchbar-header"><a href="${utils.stockHomeUrl}" target="_blank"><img src="${utils.includePath}/adobe_stock_logo-400.png"></a>${getCtaText()}</div>`;
+
     function parseFilters(filters) {
       const searchFilters = {};
-      const { $jq } = window.StockSearchBar;
+      const { $jq } = window.StockThumbs;
       if (!filters) return searchFilters;
       // iterate over object using method that won't bother eslint!
       const filterMap = Object.entries(filters);
@@ -66,7 +102,7 @@
               const phrase = (isInput) ? $el.val() : $el.text();
               // if element has text get keywords
               if (phrase) {
-                const keywords = window.StockSearchBar.keywordx.extract(phrase, {
+                const keywords = window.StockThumbs.keywordx.extract(phrase, {
                   language: 'english',
                   remove_digits: true,
                   return_changed_case: true,
@@ -99,12 +135,13 @@
       });
       return searchFilters;
     }
+
     // returns container div from selector and adds main class
     function $getContDiv(el) {
       const mainClass = 'astock-searchbar';
       const dataId = 'searchbar';
       // get reference to jQuery
-      const { $jq } = window.StockSearchBar;
+      const { $jq } = window.StockThumbs;
       // get reference to target div and data node (might be same)
       let $tempDiv = $jq(el);
       const $dataDiv = $tempDiv.find(`[data-id=${dataId}]`);
@@ -127,14 +164,12 @@
         $tempDiv.attr('data-id', dataId);
       // neither exists, throw exception
       } else {
-        throw (new Error('Stock SearchBar error: Container does not exist. Set "contId" to a valid selector.'));
+        throw (new Error('Stock SearchBar error: Container does not exist. Set "parentId" to a valid selector.'));
       }
       return $tempDiv;
     }
+
     // creates thumbs and inserts -- input is json array
-    /*
-      <div class="astock-searchbar-item" style="position: absolute; left: 0px; top: 0px;"><a href="//clk.tradedoubler.com/click?p(264355)a(3033058)g(22804962)url(https%3A%2F%2Fstock.adobe.com%2F213282832%3Fas_channel%3Daffiliate%26as_source%3Dapi%26as_content%3Db3f036780e4148b6a3f845bbe4c6de45)" target="_blank"><video preload="none" poster="https://as1.ftcdn.net/jpg/02/13/28/28/220_F_213282832_VAZvWySW4wa5YpZjBqZEEU6yUYxM7PkT.jpg" muted="muted" onmouseover="this.play()" onmouseout="this.pause()"><source src="https://v.ftcdn.net/02/13/28/28/240_F_213282832_VAZvWySW4wa5YpZjBqZEEU6yUYxM7PkT_ST.mp4" type="video/mp4"></video></a></div>
-    */
     function updateUiThumbs(files) {
       const wrapClass = 'astock-searchbar-wrap';
       const bodyClass = 'astock-searchbar-body';
@@ -144,8 +179,8 @@
       // get reference to result columns object
       const columns = AdobeStock.RESULT_COLUMNS;
       // get reference to jQuery
-      const { $jq } = window.StockSearchBar;
-      const $sb = $getContDiv(SB.contId);
+      const { $jq } = window.StockThumbs;
+      const $sb = $getContDiv(stc.parentId);
       // wrap thumbnails in container to allow scrolling
       const $wrapDiv = $jq(document.createElement('div'));
       $wrapDiv.addClass(wrapClass);
@@ -160,7 +195,7 @@
       // populate with images using html returned in json
       files.forEach((asset) => {
         // get url to details page on Stock and wrap inside affiliate tracking url
-        const url = getTrackingUrl(asset[columns.DETAILS_URL]);
+        const url = utils.getTrackingUrl(asset[columns.DETAILS_URL], stc);
         // create div wrapper
         const div = document.createElement('div');
         div.className = itemClass;
@@ -170,7 +205,7 @@
         link.target = '_blank';
         let thumb;
         // construct a different thumb element depending on asset type
-        if (SB.videoSupport && asset[columns.MEDIA_TYPE_ID] === 4) {
+        if (stc.videoSupport && asset[columns.MEDIA_TYPE_ID] === 4) {
           // create video and source tag
           const video = document.createElement('video');
           const source = document.createElement('source');
@@ -207,7 +242,7 @@
           thumb = document.createRange().createContextualFragment(tag);
         }
         // if captions are enabled
-        if (SB.tooltips) {
+        if (stc.tooltips) {
           // create tool tip from image title
           const tip = document.createElement('div');
           tip.className = tipClass;
@@ -280,8 +315,9 @@
           }, 1000);
         });
     }
-    // runs search using sdk
-    function doSearch(params) {
+
+    // runs search using sdk and returns results
+    async function doSearch(params) {
       // default filters
       const defaultParams = {
         offset: 0,
@@ -289,59 +325,86 @@
       };
       // merge default filters with params from config
       const searchParams = Object.assign(defaultParams, params);
+      console.log('Search query: %o', searchParams);
       const queryParams = {
-        locale: 'en-US',
+        // if locale is set in config, use that instead of default
+        locale: ((stc.locale) ? stc.locale : 'en-US'),
         search_parameters: searchParams,
       };
       // result fields to get back
-      const imageColumns = [
-        AdobeStock.RESULT_COLUMNS.THUMBNAIL_HTML_TAG,
-        AdobeStock.RESULT_COLUMNS.DETAILS_URL,
-        AdobeStock.RESULT_COLUMNS.NB_RESULTS,
-      ];
-      const videoColumns = [
-        AdobeStock.RESULT_COLUMNS.TITLE,
-        AdobeStock.RESULT_COLUMNS.THUMBNAIL_URL,
-        AdobeStock.RESULT_COLUMNS.MEDIA_TYPE_ID,
-        AdobeStock.RESULT_COLUMNS.VIDEO_SMALL_PREVIEW_URL,
-        AdobeStock.RESULT_COLUMNS.VIDEO_SMALL_PREVIEW_CONTENT_TYPE,
-      ];
-      // if video support is enabled, include extra result columns
-      const resultColumns = (SB.videoSupport) ? imageColumns.concat(videoColumns) : imageColumns;
-      console.log('Search query: %o', searchParams);
+      // if result_columns exists in config, use that instead
+      let resultColumns = [];
+      const hasCustomColumns = Boolean(stc.custom && stc.custom.result_columns);
+      if (!hasCustomColumns) {
+        const imageColumns = [
+          AdobeStock.RESULT_COLUMNS.THUMBNAIL_HTML_TAG,
+          AdobeStock.RESULT_COLUMNS.DETAILS_URL,
+          AdobeStock.RESULT_COLUMNS.NB_RESULTS,
+        ];
+        const videoColumns = [
+          AdobeStock.RESULT_COLUMNS.TITLE,
+          AdobeStock.RESULT_COLUMNS.THUMBNAIL_URL,
+          AdobeStock.RESULT_COLUMNS.MEDIA_TYPE_ID,
+          AdobeStock.RESULT_COLUMNS.VIDEO_SMALL_PREVIEW_URL,
+          AdobeStock.RESULT_COLUMNS.VIDEO_SMALL_PREVIEW_CONTENT_TYPE,
+        ];
+        // if video support is enabled, include extra result columns
+        resultColumns = (stc.videoSupport) ? imageColumns.concat(videoColumns) : imageColumns;
+      } else {
+        const tempFields = stc.custom.result_columns;
+        // fully qualify result column names
+        const stkResults = AdobeStock.RESULT_COLUMNS;
+        tempFields.forEach((field) => {
+          resultColumns.push(stkResults[field]);
+        });
+        resultColumns.push(AdobeStock.RESULT_COLUMNS.NB_RESULTS);
+        console.log(resultColumns);
+      }
       // create sdk instance
-      const stock = new AdobeStock(SB.apiKey, SB.appName, AdobeStock.ENVIRONMENT.PROD);
+      const stock = new AdobeStock(stc.apiKey, stc.appName, AdobeStock.ENVIRONMENT.PROD);
       // execute search and load results
       const iterator = stock.searchFiles(null, queryParams, resultColumns);
       // iterate over returned Promise
-      iterator.next().then(() => {
+      return iterator.next().then(() => {
+        let files;
         const response = iterator.getResponse();
-        // only update UI if there are results
         if (response.nb_results > 0) {
-          updateUiThumbs(response.files);
+          ({ files } = response);
         } else {
           console.log('no results from Stock');
         }
+        return files;
       });
     }
+    // expose methods and objects outside Main object
     return {
-      init: () => {
-        const { $jq } = window.StockSearchBar;
-        // create search results
-        const $searchBar = $getContDiv(SB.contId);
-        // create stock header
-        const $header = $jq(sbHeader);
-        $searchBar.append($header);
+      init: async () => {
+        const { $jq } = window.StockThumbs;
         // extract search options and run search
-        doSearch(parseFilters(SB.filters));
+        const result = await doSearch(parseFilters(stc.filters));
+        // if callback is present, return search results instead of creating searchbar
+        if (stc.custom && stc.custom.exec) {
+          // call custom code main entry point
+          stc.custom.exec.call(this, result);
+        } else {
+          // create search results
+          const $stockThumbs = $getContDiv(stc.parentId);
+          // create stock header
+          const $header = $jq(sbHeader);
+          $stockThumbs.append($header);
+          updateUiThumbs.apply(this, result);
+        }
       },
-      getFilters: () => { console.log(SB.filters); },
+      // expose search filters for troubleshooting
+      getFilters: () => { console.log(stc.filters); },
       setFilters: (filters) => { console.log(filters); },
+      // export utils for external functions
+      utils,
     };
   };
   // Get current path of script by triggering a stack trace
   /*! @source https://gist.github.com/eligrey/5426730 */
-  window.StockSearchBar.PATH = (() => {
+  window.StockThumbs.PATH = (() => {
     const filename = 'fileName';
     const stack = 'stack';
     const stacktrace = 'stacktrace';
@@ -375,12 +438,19 @@
     }
   })();
 
+  // custom event dispatcher
+  const notify = (eventName) => {
+    const event = new Event(eventName);
+    // Dispatch the event.
+    window.dispatchEvent(event);
+  };
+
   // notifies main script when everything is loaded
-  function jqLoaded() {
+  jqLoaded = (stc) => {
     // get current path of script
-    const includePath = window.StockSearchBar.PATH;
+    const includePath = window.StockThumbs.PATH;
     jQuery(document).ready((jQuery) => {
-      const SS = window.StockSearchBar;
+      const SS = window.StockThumbs;
       SS.$jq = jQuery.noConflict();
       const { $jq } = SS;
       const reqs = {
@@ -389,29 +459,45 @@
         adobestocklib: 'adobestocklib.min.js',
         masonry: 'masonry.pkgd.min.js',
       };
+      // remove/add custom libraries
+      if (stc.custom && (stc.custom.include || stc.custom.exclude)) {
+        const { exclude } = stc.custom;
+        const { include } = stc.custom;
+        if (exclude) {
+          exclude.forEach((name) => {
+            // eslint-disable-next-line no-prototype-builtins
+            if (reqs.hasOwnProperty(name)) {
+              delete reqs[name];
+            }
+          });
+        }
+        if (include) {
+          include.forEach((name) => {
+            reqs[name] = `${name}.js`;
+          });
+        }
+        console.log('new includes', reqs);
+      }
       // load other libraries using a promise
       // https://stackoverflow.com/a/11803418/9421005
-      $jq.when(
-        $jq.getScript(`${includePath}${reqs.adobestocklib}`),
-        $jq.getScript(`${includePath}${reqs.masonry}`),
-        $jq.getScript(`${includePath}${reqs.imagesloaded}`),
-        $jq.getScript(`${includePath}${reqs.keywordx}`),
-        $jq.Deferred((deferred) => {
+      $jq.getMultiScripts = (reqsObj, path) => {
+        const reqArr = $jq.map(reqsObj, script => $jq.getScript(`${path}${script}`));
+        reqArr.push($jq.Deferred((deferred) => {
           $jq(deferred.resolve);
-        }),
-      ).done(() => {
+        }));
+        return $jq.when.apply($, reqArr);
+      };
+      $jq.getMultiScripts(reqs, includePath).done(() => {
         console.log('jQuery %s and all libraries loaded.', $jq().jquery);
         // dispatch event that searchbar is ready to load
         SS.keywordx = window.keywordx;
         SS.Masonry = window.Masonry;
-        const event = new Event('StockSearchBarReady');
-        // Dispatch the event.
-        window.dispatchEvent(event);
+        notify('StockThumbsReady');
       }).fail((jqXHR, textStatus, errorThrown) => {
         console.error(errorThrown);
       });
     });
-  }
+  };
 
   const domReadyHandler = (a) => {
     const b = document;
@@ -421,16 +507,35 @@
   };
 
   domReadyHandler(() => {
+    // compares jQuery versions
+    // taken from https://stackoverflow.com/a/16187766
+    const cmpVersions = (a, b) => {
+      let i;
+      let diff;
+      const regExStrip0 = /(\.0+)+$/;
+      const segmentsA = a.replace(regExStrip0, '').split('.');
+      const segmentsB = b.replace(regExStrip0, '').split('.');
+      const l = Math.min(segmentsA.length, segmentsB.length);
+      for (i = 0; i < l; i += 1) {
+        diff = parseInt(segmentsA[i], 10) - parseInt(segmentsB[i], 10);
+        if (diff) {
+          return diff;
+        }
+      }
+      return segmentsA.length - segmentsB.length;
+    };
+
     // check for jQuery and load conditionally if version 1.9 or higher
-    if ((typeof window.jQuery === 'undefined' && !window.jQuery) || (parseFloat(window.jQuery().jquery) < 1.9)) {
+    if ((typeof window.jQuery === 'undefined' && !window.jQuery) || (cmpVersions('1.9', window.jQuery().jquery) >= 0)) {
       const jQ = document.createElement('script');
       jQ.type = 'text/javascript';
       jQ.onload = jQ.onreadystatechange;
       jQ.onload = jqLoaded;
-      jQ.src = `${window.StockSearchBar.PATH}/jquery.min.js`;
+      jQ.src = `${window.StockThumbs.PATH}/jquery.min.js`;
       document.body.appendChild(jQ);
+      notify('jQueryLoaded');
     } else {
-      jqLoaded();
+      notify('jQueryLoaded');
     }
   });
 })();
