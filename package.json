@@ -1,24 +1,24 @@
 {
-  "name": "astock-searchbar",
-  "version": "1.2.2",
+  "name": "astock-stockthumbs",
+  "version": "1.0.0",
   "description": "Reference integration of Adobe Stock search results",
-  "main": "src/sdk_searchbar.js",
+  "main": "src/sdk_stockthumbs.js",
   "scripts": {
-    "build": "babel src/sdk_searchbar.js --out-file dist/sdk_searchbar.min.js --source-maps && babel src --out-dir dist --copy-files --ignore sdk_searchbar1-src.html,sdk_searchbar-videosrc.html,sdk_searchbar.js,archive && git archive --format=zip --prefix=searchbar/ HEAD:dist/ -o searchbar-1.2.2.zip"
+    "build": "babel src/sdk_stockthumbs.js --out-file dist/sdk_stockthumbs.min.js --source-maps && babel src --out-dir dist --copy-files && babel src/custom-stockthumbs.js --out-file dist/custom-stockthumbs.min.js --source-maps && rm dist/*src.html && rm dist/*stockthumbs.js && rm -r dist/archive && git archive --format=zip --prefix=stockthumbs/ HEAD:dist/ -o stockthumbs-$npm_package_version.zip"
   },
   "author": "cfsmith@adobe.com",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chfabbro/astock-searchbar.git"
+    "url": "https://github.com/chfabbro/astock-stockthumbs.git"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-env": "^1.6.1"
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.4.5",
+    "@babel/preset-env": "^7.4.5",
+    "babel-plugin-transform-remove-console": "^6.9.4"
   },
   "dependencies": {
-    "babel-plugin-transform-remove-console": "^6.9.0",
-    "babel-polyfill": "^6.26.0",
-    "npm": "^5.8.0"
+    "@babel/polyfill": "^7.2.5"
   }
 }
