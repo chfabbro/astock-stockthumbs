@@ -1,6 +1,6 @@
 {
   "name": "astock-stockthumbs",
-  "version": "1.0.0",
+  "version": "1.2.4",
   "description": "Reference integration of Adobe Stock search results",
   "main": "src/sdk_stockthumbs.js",
   "scripts": {

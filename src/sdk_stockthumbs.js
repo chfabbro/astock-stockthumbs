@@ -382,7 +382,11 @@
         const { $jq } = window.StockThumbs;
         // extract search options and run search
         const result = await doSearch(parseFilters(stc.filters));
-        // if callback is present, return search results instead of creating searchbar
+        // runs callback after search results are returned (optional)
+        if (stc.callback && (typeof stc.callback === 'function')) {
+          stc.callback.apply(this, result);
+        }
+        // if custom code is present, return search results and run code instead of default behavior
         if (stc.custom && stc.custom.exec) {
           // call custom code main entry point
           stc.custom.exec.call(this, result);
