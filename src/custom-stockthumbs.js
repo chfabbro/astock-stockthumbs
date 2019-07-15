@@ -1,4 +1,4 @@
-console.log('Creative Pixel custom loaded');
+console.log('Custom script loaded');
 
 (() => {
   const cpThumbs = {};
@@ -17,7 +17,7 @@ console.log('Creative Pixel custom loaded');
     return template.content.firstChild;
   });
 
-  /** TO DO: transform URLs and text with tracking links <<<<<
+  /**
    * Creates node list from search data
    * @param {array} files array of JSON data
    * @returns {object} document fragment list of nodes
@@ -78,33 +78,75 @@ console.log('Creative Pixel custom loaded');
 
   /**
    * Interleaves target node members with nodes from source
-   * @param {object} source new node list content
-   * @param {object} target node list to be combined
+   * 1. Get [count] nodes from source and add to newList
+   * 2. Add [count] target nodes
+   * 3. If repeat is true, return to 1
+   * 4. Add rest of target nodes   * @param {object} source new node list content
+   * @param {object} target existing node list to be combined
+   * @param {array} prefs (number, boolean) number of items to interleave, and whether to repeat
    * @returns {object} combined node list with new children
    */
-  const combineNodes = (source, target) => {
+  const combineNodes = (source, target, prefs) => {
+    // set how many items to interleave (default 1)
+    let count = 1;
+    // sets whether to repeat insertion (default true)
+    let repeat = true;
+    // check if prefs array is set
+    if (prefs) {
+      count = (typeof prefs[0] === 'number') ? prefs[0] : count;
+      repeat = (prefs[1] !== undefined && prefs[1] !== null && typeof prefs[1] === 'boolean') ? prefs[1] : repeat;
+    }
     // returns new nodelist
     const newList = document.createDocumentFragment();
-    // iterate over target nodes and combine with source nodes
-    let srcNodeList = source.childNodes;
-    target.forEach((node) => {
-      // get first node from source using spread operator and store remainder
-      const [srcNode, ...tailNodes] = srcNodeList;
-      // clone current node or else appendChild will remove it from list
-      const targetNode = node.cloneNode(true);
-      // check if element node
-      if (targetNode.nodeType === Node.ELEMENT_NODE && srcNode) {
-        // insert original element node
-        newList.appendChild(targetNode);
-        // insert source node
-        newList.appendChild(srcNode);
-        // update source list with remaining nodes
-        srcNodeList = tailNodes;
-      } else {
-        // add back other nodes without modification
-        newList.appendChild(targetNode);
+    // convert target and source node list to array
+    let srcNodeList = Array.from(source.childNodes)
+    let targNodeList = Array.from(target);
+    const getValidNode = (arr) => {
+      let node = null;
+      while (arr.length > 0 && !node) {
+        // get first element
+        const tempNode = arr.shift();
+        // check if element
+        if (tempNode.nodeType === Node.ELEMENT_NODE) {
+          node = tempNode.cloneNode(true);
+        }
       }
-    });
+      return {
+        node,
+        list: arr,
+      };
+    };
+    while (targNodeList.length > 0) {
+      // build list of source nodes
+      for (let srcIdx = 0; srcIdx < count; srcIdx += 1) {
+        // check if element node and add to new list
+        const nodeCheck = getValidNode(srcNodeList);
+        if (nodeCheck.node) {
+          // add to list
+          newList.appendChild(nodeCheck.node);
+          // update array
+          srcNodeList = nodeCheck.list;
+        }
+      }
+      // now do the same for target nodes if repeat is true
+      if (repeat) {
+        for (let srcIdx = 0; srcIdx < count; srcIdx += 1) {
+          const nodeCheck = getValidNode(targNodeList);
+          if (nodeCheck.node) {
+            // add to list
+            newList.appendChild(nodeCheck.node);
+            // update array
+            targNodeList = nodeCheck.list;
+          }
+        }
+      } else {
+        // add remainder of nodes to list
+        while (targNodeList.length > 0) {
+          const targetNode = targNodeList.shift();
+          newList.appendChild(targetNode.cloneNode(true));
+        }
+      }
+    }
     return newList;
   };
 
@@ -142,7 +184,7 @@ console.log('Creative Pixel custom loaded');
     if (!source || !target) {
       throw new Error('ParentID or HTML is invalid');
     }
-    const combined = combineNodes(source, target);
+    const combined = combineNodes(source, target, stc.custom.interleave);
     if (window.jQuery && window.Masonry) {
       const $jq = window.jQuery;
       // replace existing node children with new list
